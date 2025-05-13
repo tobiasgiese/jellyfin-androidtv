@@ -43,6 +43,7 @@ class TextUnderButton @JvmOverloads constructor(
 
 	companion object {
 		@JvmStatic
+		@JvmOverloads
 		@Suppress("LongParameterList")
 		fun create(
 			context: Context,
@@ -50,12 +51,14 @@ class TextUnderButton @JvmOverloads constructor(
 			maxHeight: Int? = null,
 			padding: Int? = null,
 			label: String? = null,
-			onClickListener: OnClickListener
+			onClickListener: OnClickListener,
+			onLongClickListener: OnLongClickListener? = null
 		) = TextUnderButton(context).apply {
 			setLabel(label)
 			setIcon(icon, maxHeight)
 			setPadding(padding)
 			setOnClickListener(onClickListener)
+			setOnLongClickListener(onLongClickListener)
 		}
 	}
 }

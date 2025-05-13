@@ -575,4 +575,7 @@
         <item quantity="one">%1$s album</item>
         <item quantity="other">%1$s albums</item>
     </plurals>
+    <string name="lbl_choose_player">Choose Player</string>
+    <string name="lbl_internal_player">Internal Player</string>
+    <string name="lbl_external_player">External Player</string>
 </resources>

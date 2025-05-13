@@ -231,11 +231,11 @@ fun FullDetailsFragment.populatePreviousButton() {
 	}
 }
 
-fun FullDetailsFragment.resumePlayback() {
+fun FullDetailsFragment.resumePlayback(useExternalPlayer: Boolean) {
 	if (mBaseItem.type != BaseItemKind.SERIES) {
 		val pos = (mBaseItem.userData?.playbackPositionTicks?.ticks
 			?: Duration.ZERO) - resumePreroll.milliseconds
-		play(mBaseItem, pos.inWholeMilliseconds.toInt(), false)
+		play(mBaseItem, pos.inWholeMilliseconds.toInt(), false, useExternalPlayer)
 		return
 	}
 

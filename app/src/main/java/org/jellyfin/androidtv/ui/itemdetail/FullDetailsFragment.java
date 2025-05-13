@@ -769,7 +769,13 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
         mResumeButton = TextUnderButton.create(requireContext(), R.drawable.ic_resume, buttonSize, 2, buttonLabel, new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                FullDetailsFragmentHelperKt.resumePlayback(FullDetailsFragment.this);
+                FullDetailsFragmentHelperKt.resumePlayback(FullDetailsFragment.this, false);
+            }
+        }, new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                showPlayerChoiceDialog(true);
+                return true;
             }
         });
 
@@ -782,6 +788,12 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
                 @Override
                 public void onClick(View v) {
                     play(mBaseItem, 0, false);
+                }
+            }, new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    showPlayerChoiceDialog(false);
+                    return true;
                 }
             });
 
@@ -950,7 +962,7 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
         org.jellyfin.sdk.model.api.UserItemDataDto userData = mBaseItem.getUserData();
         if (userData != null && mProgramInfo == null) {
             if (mBaseItem.getType() != BaseItemKind.MUSIC_ARTIST && mBaseItem.getType() != BaseItemKind.PERSON) {
-                mWatchedToggleButton = TextUnderButton.create(requireContext(), R.drawable.ic_watch, buttonSize, 0, getString(R.string.lbl_watched), markWatchedListener);
+                mWatchedToggleButton = TextUnderButton.create(requireContext(), R.drawable.ic_watch, buttonSize, 0, getString(R.string.lbl_watched), markWatchedListener, null);
                 mWatchedToggleButton.setActivated(userData.getPlayed());
                 mDetailsOverviewRow.addAction(mWatchedToggleButton);
             }
@@ -1156,6 +1168,26 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
         });
     }
 
+    private void showPlayerChoiceDialog(boolean isResume) {
+        PopupMenu menu = new PopupMenu(requireContext(), requireActivity().getCurrentFocus(), Gravity.END);
+        menu.getMenu().add(0, 0, 0, getString(R.string.lbl_internal_player)).setOnMenuItemClickListener(item -> {
+            if (isResume) {
+                FullDetailsFragmentHelperKt.resumePlayback(FullDetailsFragment.this, false);
+            } else {
+                play(mBaseItem, 0, false, false);
+            }
+            return true;
+        });
+        menu.getMenu().add(0, 1, 1, getString(R.string.lbl_external_player)).setOnMenuItemClickListener(item -> {
+            if (isResume) {
+                FullDetailsFragmentHelperKt.resumePlayback(FullDetailsFragment.this, true);
+            } else {
+                play(mBaseItem, 0, false, true);
+            }
+            return true;
+        });
+        menu.show();
+    }
 
     private final class ItemViewClickedListener implements OnItemViewClickedListener {
         @Override
@@ -1191,6 +1223,10 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
     }
 
     void play(final BaseItemDto item, final int pos, final boolean shuffle) {
+        play(item, pos, shuffle, false);
+    }
+
+    void play(final BaseItemDto item, final int pos, final boolean shuffle, final boolean useExternalPlayer) {
         playbackHelper.getValue().getItemsToPlay(getContext(), item, pos == 0 && item.getType() == BaseItemKind.MOVIE, shuffle, new Response<List<BaseItemDto>>() {
             @Override
             public void onResponse(List<BaseItemDto> response) {
@@ -1199,14 +1235,18 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
                     return;
                 }
 
-                KoinJavaComponent.<PlaybackLauncher>get(PlaybackLauncher.class).launch(getContext(), response, pos, false, 0, shuffle);
+                KoinJavaComponent.<PlaybackLauncher>get(PlaybackLauncher.class).launch(getContext(), response, pos, false, 0, shuffle, useExternalPlayer);
             }
         });
     }
 
     void play(final List<BaseItemDto> items, final int pos, final boolean shuffle) {
+        play(items, pos, shuffle, false);
+    }
+
+    void play(final List<BaseItemDto> items, final int pos, final boolean shuffle, final boolean useExternalPlayer) {
         if (items.isEmpty()) return;
         if (shuffle) Collections.shuffle(items);
-        KoinJavaComponent.<PlaybackLauncher>get(PlaybackLauncher.class).launch(getContext(), items, pos);
+        KoinJavaComponent.<PlaybackLauncher>get(PlaybackLauncher.class).launch(getContext(), items, pos, false, 0, false, useExternalPlayer);
     }
 }
